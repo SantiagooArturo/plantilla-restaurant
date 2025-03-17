@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:go_router/go_router.dart'; // Import GoRouter
+import 'package:go_router/go_router.dart';
 import 'package:perlaazul/posts/mypost_1.dart';
 
 class CevichesPage extends StatefulWidget {
@@ -14,12 +14,23 @@ class CevichesPage extends StatefulWidget {
 class _CevichesPageState extends State<CevichesPage> {
   late PageController _controller;
   List<dynamic> _videoList = [];
+  int _currentIndex = 0;
 
   @override
   void initState() {
     super.initState();
     _controller = PageController(initialPage: 0);
+    _controller.addListener(_onScroll);
     _loadVideos();
+  }
+
+  void _onScroll() {
+    final page = _controller.page?.round() ?? 0;
+    if (_currentIndex != page && mounted) {
+      setState(() {
+        _currentIndex = page;
+      });
+    }
   }
 
   Future<void> _loadVideos() async {
@@ -101,6 +112,13 @@ class _CevichesPageState extends State<CevichesPage> {
   }
 
   @override
+  void dispose() {
+    _controller.removeListener(_onScroll);
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: _videoList.isEmpty
@@ -116,7 +134,13 @@ class _CevichesPageState extends State<CevichesPage> {
                 return Stack(
                   alignment: Alignment.center,
                   children: [
-                    Positioned.fill(child: MyPost(videoUrl: video['videoUrl'])),
+                    Positioned.fill(
+                      child: MyPost(
+                        key: ValueKey('video_$index'),
+                        videoUrl: video['videoUrl'],
+                        autoPlay: index == _currentIndex,
+                      ),
+                    ),
                     // Info & List Buttons (Switched Positions)
                     Positioned(
                       top: 20,

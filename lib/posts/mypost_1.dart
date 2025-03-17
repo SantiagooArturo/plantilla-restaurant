@@ -1,49 +1,80 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 
 class MyPost extends StatefulWidget {
-  final String videoUrl; // Accepts a video URL
+  final String videoUrl;
+  final bool autoPlay; // Nuevo parámetro
 
-  const MyPost({super.key, required this.videoUrl});
+  const MyPost({
+    Key? key, 
+    required this.videoUrl,
+    this.autoPlay = true,
+  }) : super(key: key);
 
   @override
   _MyPostState createState() => _MyPostState();
 }
 
-class _MyPostState extends State<MyPost> {
+class _MyPostState extends State<MyPost> with AutomaticKeepAliveClientMixin {
   late VideoPlayerController _controller;
   bool _isInitialized = false;
 
   @override
+  bool get wantKeepAlive => true; // Mantener el estado del video al hacer scroll
+
+  @override
   void initState() {
     super.initState();
-    _initializeVideo();
+    _initializeVideoPlayer();
   }
 
-  void _initializeVideo() {
-    _controller = VideoPlayerController.network(widget.videoUrl)
-      ..initialize().then((_) {
-        if (mounted) {
-          setState(() {
-            _isInitialized = true;
-            // Forzar reproducción inmediata después de inicializar
-            _controller.play();
-          });
+  Future<void> _initializeVideoPlayer() async {
+    _controller = VideoPlayerController.network(widget.videoUrl);
+    
+    try {
+      await _controller.initialize();
+      _controller.setLooping(true);
+      _controller.setVolume(1.0);
+      
+      if (mounted) {
+        setState(() {
+          _isInitialized = true;
+        });
+        
+        if (widget.autoPlay) {
+          _controller.play();
         }
-      })
-      ..setLooping(true)
-      ..setVolume(1.0);
+      }
+    } catch (e) {
+      print("Error inicializando video: $e");
+    }
+  }
+
+  @override
+  void didUpdateWidget(MyPost oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    
+    // Este es el punto clave - responde a cambios en autoPlay
+    if (widget.autoPlay != oldWidget.autoPlay) {
+      if (widget.autoPlay && _isInitialized) {
+        _controller.play();
+      } else if (!widget.autoPlay && _isInitialized) {
+        _controller.pause();
+      }
+    }
   }
 
   @override
   void dispose() {
-    _controller.pause();
     _controller.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    super.build(context); // Necesario para AutomaticKeepAliveClientMixin
+    
     return GestureDetector(
       onTap: () {
         if (_isInitialized) {
