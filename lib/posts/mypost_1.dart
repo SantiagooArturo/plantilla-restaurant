@@ -16,23 +16,22 @@ class _MyPostState extends State<MyPost> with WidgetsBindingObserver {
   // -- VARIABLES --
   late VideoPlayerController _controller;
   bool _isInitialized = false;
+  bool _userPaused = false; // Flag para saber si el usuario pausó manualmente
   
   // -- CICLO DE VIDA --
   
-  // Se ejecuta al crear el widget
   @override
   void initState() {
     super.initState();
-    // Nos suscribimos para monitorear el ciclo de vida
+    // Registramos observador para cambios de ciclo de vida
     WidgetsBinding.instance.addObserver(this);
-    // Iniciamos la carga del reproductor
-    _arrancarReproductor();
+    // Iniciamos el reproductor
+    _cargarVideo();
   }
   
-  // Limpieza al destruir el widget
   @override
   void dispose() {
-    // Cancelamos suscripción y liberamos recursos
+    // Limpieza para evitar memory leaks
     WidgetsBinding.instance.removeObserver(this);
     _controller.dispose();
     super.dispose();
@@ -40,77 +39,62 @@ class _MyPostState extends State<MyPost> with WidgetsBindingObserver {
   
   // -- MÉTODOS PRIVADOS --
   
-  // Inicializa y configura el reproductor de video
-  Future<void> _arrancarReproductor() async {
-    // Crear controlador con la URL recibida
+  // Carga y prepara el video para reproducción
+  Future<void> _cargarVideo() async {
     _controller = VideoPlayerController.network(widget.videoUrl);
     
     try {
-      // Configuración básica
+      // Configuración inicial
       await _controller.initialize();
-      await _controller.setLooping(true); // Repetir infinitamente
+      await _controller.setLooping(true);
       
-      // TRUCO PARA WEB: iniciar sin sonido evita restricciones
+      // Truco para web: empezar mudo para evitar bloqueos del navegador
       if (kIsWeb) {
         await _controller.setVolume(0.0);
       } else {
         await _controller.setVolume(1.0);
       }
       
-      // Actualizar estado solo si el widget sigue montado
-      if (mounted) {
-        setState(() => _isInitialized = true);
-        
-        // Pequeño retraso para asegurar que todo está listo
-        Future.delayed(const Duration(milliseconds: 100), () {
-          if (!mounted) return; // Verificación de seguridad
-          
-          // Intentar reproducir automáticamente
-          _controller.play().then((_) {
-            // En web, activar sonido después de iniciar
-            if (kIsWeb) {
-              Future.delayed(const Duration(seconds: 1), () {
-                _controller.setVolume(0.0);
-              });
-            }
-          }).catchError((error) {
-            // Log en caso de error, pero no mostrar al usuario
-            // ignore: avoid_print
-            print(" Error de reproducción: $error");
+      // Verificar que seguimos en pantalla
+      if (!mounted) return;
+      
+      // Actualizar estado y empezar reproducción
+      setState(() {
+        _isInitialized = true;
+        _userPaused = false;
+      });
+      
+      // Iniciar reproducción inmediatamente
+      _controller.play().then((_) {
+        // Activar sonido en web después de comenzar
+        if (kIsWeb && mounted) {
+          Future.delayed(const Duration(seconds: 1), () {
+            _controller.setVolume(0.0);
           });
-          
-          // Actualizar UI
-          if (mounted) setState(() {});
-        });
-      }
+        }
+      }).catchError((e) {
+        print("Error al reproducir: $e");
+      });
     } catch (e) {
-      // Log en caso de error de inicialización
-      // ignore: avoid_print
-      print(" Error iniciando video: $e");
+      print("Error al inicializar: $e");
     }
   }
   
   // -- GESTIÓN DE CICLO DE VIDA --
   
-  // Responder a cambios en el estado de la app (fondo/primer plano)
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    // No hacer nada si el video no está listo
     if (!_isInitialized) return;
     
-    // RESUMIDO: App vuelve a primer plano
     if (state == AppLifecycleState.resumed) {
-      // Reanudar reproducción si estaba pausado
-      if (!_controller.value.isPlaying) {
+      // Solo reproducir si no fue pausado por el usuario
+      if (!_userPaused) {
         _controller.play();
       }
-    } 
-    // PAUSADO: App va a segundo plano
-    else if (state == AppLifecycleState.paused) {
-      // Pausar si estaba reproduciéndose
-      if (_controller.value.isPlaying) {
-        _controller.pause();
-      }
+    } else if (state == AppLifecycleState.paused) {
+      // Guardar estado de reproducción actual antes de pausar
+      _userPaused = !_controller.value.isPlaying;
+      _controller.pause();
     }
   }
   
@@ -119,26 +103,28 @@ class _MyPostState extends State<MyPost> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      // Toggle play/pause al tocar la pantalla
       onTap: () {
         if (!_isInitialized) return;
         
+        // Actualizar flag de pausa manual y cambiar estado
         setState(() {
-          // Alternar entre reproducir y pausar
-          _controller.value.isPlaying 
-              ? _controller.pause() 
-              : _controller.play();
+          if (_controller.value.isPlaying) {
+            _controller.pause();
+            _userPaused = true; // El usuario pausó manualmente
+          } else {
+            _controller.play();
+            _userPaused = false; // El usuario resumió manualmente
+          }
         });
       },
       
-      // Estructura visual usando un stack para mantener capas 
       child: Stack(
         alignment: Alignment.center,
         children: [
-          // Fondo negro para cuando el video no carga(por sea caso no cargue!)
+          // Fondo negro base
           Container(color: Colors.black),
           
-          // Video a pantalla completa (ajustado intentar no tocar ojo por que tiene dimsensiones exatcas)
+          // Video player - solo visible cuando está inicializado
           if (_isInitialized)
             Positioned.fill(
               child: FittedBox(
@@ -151,12 +137,12 @@ class _MyPostState extends State<MyPost> with WidgetsBindingObserver {
               ),
             ),
           
-          // Indicador de carga mientras se prepara el video
+          // Indicador de carga - solo visible durante inicialización
           if (!_isInitialized)
             const Center(child: CircularProgressIndicator()),
           
-          // Botón de play cuando está pausado
-          if (_isInitialized && !_controller.value.isPlaying)
+          // Botón de play - solo visible cuando el usuario pausa manualmente
+          if (_isInitialized && _userPaused)
             const Icon(
               Icons.play_arrow,
               size: 80,
