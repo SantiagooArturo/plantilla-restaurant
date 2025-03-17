@@ -4,8 +4,17 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart'; // Import GoRouter
 import 'package:perlaazul/posts/mypost_1.dart';
 
+/// Página que muestra los duos disponibles en el menú
+/// Permite la visualización de videos y detalles de cada duo
 class DuosPage extends StatefulWidget {
-  const DuosPage({super.key});
+  /// ID opcional del plato a mostrar inicialmente
+  /// Se utiliza cuando se navega desde la lista del menú para mostrar un duo específico
+  final int? initialDishId;
+  
+  const DuosPage({
+    super.key,
+    this.initialDishId,
+  });
 
   @override
   _DuosPageState createState() => _DuosPageState();
@@ -18,10 +27,11 @@ class _DuosPageState extends State<DuosPage> {
   @override
   void initState() {
     super.initState();
-    _controller = PageController(initialPage: 0);
     _loadVideos();
   }
 
+  /// Carga los videos desde el archivo JSON y configura la página inicial
+  /// Si se proporciona un initialDishId, muestra el video correspondiente
   Future<void> _loadVideos() async {
     final String response = await rootBundle.loadString('assets/duos.json');
     final List<dynamic> data = json.decode(response);
@@ -29,6 +39,16 @@ class _DuosPageState extends State<DuosPage> {
     setState(() {
       _videoList = data;
     });
+
+    // Configuración de la página inicial basada en el ID proporcionado
+    if (widget.initialDishId != null) {
+      final initialIndex = _videoList.indexWhere((video) => video['id'] == widget.initialDishId);
+      if (initialIndex != -1) {
+        _controller = PageController(initialPage: initialIndex);
+      }
+    } else {
+      _controller = PageController(initialPage: 0);
+    }
   }
 
   void _showIngredients(BuildContext context, String title, List<dynamic> ingredients, bool isSpicy) {

@@ -5,7 +5,12 @@ import 'package:go_router/go_router.dart'; // Import GoRouter
 import 'package:perlaazul/posts/mypost_1.dart';
 
 class SabadosYDomingosPage extends StatefulWidget {
-  const SabadosYDomingosPage({super.key});
+  final int? initialDishId;
+  
+  const SabadosYDomingosPage({
+    super.key,
+    this.initialDishId,
+  });
 
   @override
   _SabadosYDomingosPageState createState() => _SabadosYDomingosPageState();
@@ -18,7 +23,6 @@ class _SabadosYDomingosPageState extends State<SabadosYDomingosPage> {
   @override
   void initState() {
     super.initState();
-    _controller = PageController(initialPage: 0);
     _loadVideos();
   }
 
@@ -29,6 +33,16 @@ class _SabadosYDomingosPageState extends State<SabadosYDomingosPage> {
     setState(() {
       _videoList = data;
     });
+
+    // Si tenemos un ID inicial, buscamos su índice y movemos el PageController a esa posición
+    if (widget.initialDishId != null) {
+      final initialIndex = _videoList.indexWhere((video) => video['id'] == widget.initialDishId);
+      if (initialIndex != -1) {
+        _controller = PageController(initialPage: initialIndex);
+      }
+    } else {
+      _controller = PageController(initialPage: 0);
+    }
   }
 
   void _showIngredients(BuildContext context, String title, List<dynamic> ingredients, bool isSpicy) {
