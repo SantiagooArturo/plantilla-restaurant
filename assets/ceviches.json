@@ -1,28 +1,28 @@
 [
   {
     "id": 1,
-    "videoUrl": "https://miralorestaurantes.s3.us-east-1.amazonaws.com/perlaazul/videos/prueba.mp4",
-    "title": "Orgia Marina",
-    "description": "Pulpo al olivo, causa de langostinos, chicharron de pescado, ceviche",
-    "price": "90.00",
+    "videoUrl": "https://perlaazulrestaurante.s3.us-east-1.amazonaws.com/2_Videos/3_Ceviches/1_DeCarretilla.mp4",
+    "title": "Ceviche de Carretilla",
+    "description": "",
+    "price": "55.00",
     "ingredients": ["Tomato", "Onion", "Garlic", "Chicken"],
     "spicy": true
   },
   {
     "id": 2,
-    "videoUrl": "https://miralorestaurantes.s3.us-east-1.amazonaws.com/perlaazul/videos/prueba.mp4",
-    "title": "Second Video",
-    "description": "This is the second video description.",
-    "price": "19.99",
+    "videoUrl": "https://perlaazulrestaurante.s3.us-east-1.amazonaws.com/2_Videos/3_Ceviches/2_DePescado.mp4",
+    "title": "Ceviche de Pescado",
+    "description": "",
+    "price": "40.00",
     "ingredients": ["Tomato", "Onion", "Garlic", "Chicken"],
-    "spicy": false
+    "spicy": true
   },
   {
     "id": 3,
-    "videoUrl": "https://miralorestaurantes.s3.us-east-1.amazonaws.com/perlaazul/videos/prueba.mp4",
-    "title": "Third Video",
-    "description": "This is the third video description.",
-    "price": "24.99",
+    "videoUrl": "https://perlaazulrestaurante.s3.us-east-1.amazonaws.com/2_Videos/3_Ceviches/3_Mixto.mp4",
+    "title": "Ceviche Mixto",
+    "description": "",
+    "price": "55.00",
     "ingredients": ["Tomato", "Onion", "Garlic", "Chicken"],
     "spicy": true
   }

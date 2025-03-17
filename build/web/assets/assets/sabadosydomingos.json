@@ -1,29 +1,29 @@
 [
   {
     "id": 1,
-    "videoUrl": "https://miralorestaurantes.s3.us-east-1.amazonaws.com/perlaazul/videos/prueba.mp4",
-    "title": "Orgia Marina",
-    "description": "Pulpo al olivo, causa de langostinos, chicharron de pescado, ceviche",
-    "price": "90.00",
+    "videoUrl": "https://perlaazulrestaurante.s3.us-east-1.amazonaws.com/2_Videos/6_SabadosYDomingos/1_PatoGuisadoConFrejoles.mp4",
+    "title": "Pato Guisado",
+    "description": "Con Frejoles",
+    "price": "40.00",
     "ingredients": ["Tomato", "Onion", "Garlic", "Chicken"],
-    "spicy": true
+    "spicy": false
   },
   {
     "id": 2,
-    "videoUrl": "https://miralorestaurantes.s3.us-east-1.amazonaws.com/perlaazul/videos/prueba.mp4",
-    "title": "Second Video",
-    "description": "This is the second video description.",
-    "price": "19.99",
+    "videoUrl": "https://perlaazulrestaurante.s3.us-east-1.amazonaws.com/2_Videos/6_SabadosYDomingos/2_CabritoALaTrujillanaConFrejoles.mp4",
+    "title": "Cabrito a la Trujillana",
+    "description": "Con Frejoles",
+    "price": "40.00",
     "ingredients": ["Tomato", "Onion", "Garlic", "Chicken"],
     "spicy": false
   },
   {
     "id": 3,
-    "videoUrl": "https://miralorestaurantes.s3.us-east-1.amazonaws.com/perlaazul/videos/prueba.mp4",
-    "title": "Third Video",
-    "description": "This is the third video description.",
-    "price": "24.99",
+    "videoUrl": "https://perlaazulrestaurante.s3.us-east-1.amazonaws.com/2_Videos/6_SabadosYDomingos/4_ChanchoAlCilindro.mp4",
+    "title": "Chancho al Cilindro",
+    "description": "",
+    "price": "40.00",
     "ingredients": ["Tomato", "Onion", "Garlic", "Chicken"],
-    "spicy": true
+    "spicy": false
   }
 ]

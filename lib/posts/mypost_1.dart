@@ -70,7 +70,7 @@ class _MyPostState extends State<MyPost> with WidgetsBindingObserver {
             // En web, activar sonido después de iniciar
             if (kIsWeb) {
               Future.delayed(const Duration(seconds: 1), () {
-                _controller.setVolume(1.0);
+                _controller.setVolume(0.0);
               });
             }
           }).catchError((error) {
@@ -86,7 +86,7 @@ class _MyPostState extends State<MyPost> with WidgetsBindingObserver {
     } catch (e) {
       // Log en caso de error de inicialización
       // ignore: avoid_print
-      print("💥 Error iniciando video: $e");
+      print(" Error iniciando video: $e");
     }
   }
   
