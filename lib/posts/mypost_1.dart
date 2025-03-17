@@ -12,19 +12,23 @@ class MyPost extends StatefulWidget {
 
 class _MyPostState extends State<MyPost> {
   late VideoPlayerController _controller;
-  bool _isInitialized = false; // Track if video is initialized
+  bool _isInitialized = false;
 
   @override
   void initState() {
     super.initState();
+    _initializeVideo();
+  }
 
+  void _initializeVideo() {
     _controller = VideoPlayerController.network(widget.videoUrl)
       ..initialize().then((_) {
-        if (mounted) { // ✅ Prevent errors if widget was removed before initialization
+        if (mounted) {
           setState(() {
             _isInitialized = true;
+            // Forzar reproducción inmediata después de inicializar
+            _controller.play();
           });
-          _controller.play();
         }
       })
       ..setLooping(true)
@@ -33,51 +37,46 @@ class _MyPostState extends State<MyPost> {
 
   @override
   void dispose() {
-    _controller.pause(); // ✅ Pause video before disposing to prevent errors
+    _controller.pause();
     _controller.dispose();
     super.dispose();
   }
 
   @override
- @override
-Widget build(BuildContext context) {
-  return GestureDetector(
-    onTap: () {
-      if (_isInitialized) {
-        setState(() {
-          _controller.value.isPlaying ? _controller.pause() : _controller.play();
-        });
-      }
-    },
-    child: Stack(
-      alignment: Alignment.center,
-      children: [
-        // Black background while loading
-        Container(color: Colors.black),
-        // Video player (only shows if initialized)
-        if (_isInitialized)
-          Positioned.fill(
-            child: FittedBox(
-              fit: BoxFit.cover,
-              child: SizedBox(
-                width: _controller.value.size.width,
-                height: _controller.value.size.height,
-                child: VideoPlayer(_controller),
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        if (_isInitialized) {
+          setState(() {
+            _controller.value.isPlaying ? _controller.pause() : _controller.play();
+          });
+        }
+      },
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Container(color: Colors.black),
+          if (_isInitialized)
+            Positioned.fill(
+              child: FittedBox(
+                fit: BoxFit.cover,
+                child: SizedBox(
+                  width: _controller.value.size.width,
+                  height: _controller.value.size.height,
+                  child: VideoPlayer(_controller),
+                ),
               ),
             ),
-          ),
-        // Loading indicator if video isn't ready
-        if (!_isInitialized)
-          const Center(child: CircularProgressIndicator()),
-        // Play/Pause overlay icon (shows only when paused)
-        if (_isInitialized && !_controller.value.isPlaying)
-          const Icon(
-            Icons.play_arrow,
-            size: 80,
-            color: Colors.white,
-          ),
-      ],
-    ),
-  );
-}
+          if (!_isInitialized)
+            const Center(child: CircularProgressIndicator()),
+          if (_isInitialized && !_controller.value.isPlaying)
+            const Icon(
+              Icons.play_arrow,
+              size: 80,
+              color: Colors.white,
+            ),
+        ],
+      ),
+    );
+  }
 }
