@@ -1,0 +1,29 @@
+[
+  {
+    "id": 1,
+    "videoUrl": "https://miralorestaurantes.s3.us-east-1.amazonaws.com/perlaazul/videos/prueba.mp4",
+    "title": "Orgia Marina",
+    "description": "Pulpo al olivo, causa de langostinos, chicharron de pescado, ceviche",
+    "price": "90.00",
+    "ingredients": ["Tomato", "Onion", "Garlic", "Chicken"],
+    "spicy": true
+  },
+  {
+    "id": 2,
+    "videoUrl": "https://miralorestaurantes.s3.us-east-1.amazonaws.com/perlaazul/videos/prueba.mp4",
+    "title": "Second Video",
+    "description": "This is the second video description.",
+    "price": "19.99",
+    "ingredients": ["Tomato", "Onion", "Garlic", "Chicken"],
+    "spicy": false
+  },
+  {
+    "id": 3,
+    "videoUrl": "https://miralorestaurantes.s3.us-east-1.amazonaws.com/perlaazul/videos/prueba.mp4",
+    "title": "Third Video",
+    "description": "This is the third video description.",
+    "price": "24.99",
+    "ingredients": ["Tomato", "Onion", "Garlic", "Chicken"],
+    "spicy": true
+  }
+]

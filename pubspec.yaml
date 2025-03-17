@@ -1,0 +1,49 @@
+name: perlaazul
+description: "A new Flutter project."
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.5.4 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  go_router: ^14.8.1
+  salomon_bottom_bar: ^3.3.2
+  video_player: ^2.9.3
+  http: ^1.3.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_launcher_icons: ^0.13.1
+  flutter_lints: ^5.0.0
+
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "assets/logo.png"  # Use PNG instead of JPG
+  adaptive_icon_foreground: "assets/logo.png" # Optional for Android
+  adaptive_icon_background: "#ffffff" # Background color for adaptive icons
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/piqueos.json
+    - assets/duos.json
+    - assets/ceviches.json
+    - assets/chicharrones.json
+    - assets/fondos.json
+    - assets/sabadosydomingos.json
+
+  fonts:
+    - family: Garamond
+      fonts:
+        - asset: assets/fonts/EBGaramond-Regular.ttf
+        - asset: assets/fonts/EBGaramond-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/EBGaramond-Bold.ttf
+          weight: 700
