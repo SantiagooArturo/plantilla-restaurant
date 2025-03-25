@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:go_router/go_router.dart'; // Import GoRouter
+import 'package:go_router/go_router.dart';
 import 'package:perlaazul/posts/mypost_1.dart';
 
 /// Página que muestra los ceviches disponibles en el menú
@@ -21,19 +21,15 @@ class CevichesPage extends StatefulWidget {
 }
 
 class _CevichesPageState extends State<CevichesPage> {
-  // Controlador para manejar la navegación entre videos
+  // ===== Variables de estado y configuración =====
   late PageController _controller;
-  // Lista que almacena todos los ceviches con sus detalles
   List<dynamic> _videoList = [];
-  // Cache de widgets de video para optimizar memoria
   final Map<int, MyPost> _videoCache = {};
-  // Índice del video actual
   int _currentIndex = 0;
-  // Ventana de precarga (videos antes y después del actual)
   static const int _preloadWindow = 1;
-  // Lista para almacenar índices de videos precargados
   final Set<int> _preloadedIndices = {};
 
+  // ===== Métodos del ciclo de vida =====
   @override
   void initState() {
     super.initState();
@@ -42,25 +38,26 @@ class _CevichesPageState extends State<CevichesPage> {
 
   @override
   void dispose() {
-    // Limpiamos los recursos al destruir la página
     _controller.dispose();
     _videoCache.clear();
+    _preloadedIndices.clear();
     super.dispose();
   }
 
-  /// Carga los datos de los videos y configura la página inicial
-  /// Si se proporciona un initialDishId, muestra el video correspondiente
+  // ===== Métodos para gestión de datos y videos =====
+  /// Carga los datos de los ceviches desde JSON y configura la página inicial
   Future<void> _loadVideos() async {
     try {
-      // Cargamos el archivo JSON con los datos de los ceviches
       final String response = await rootBundle.loadString('assets/ceviches.json');
       final List<dynamic> data = json.decode(response);
+
+      if (!mounted) return;
 
       setState(() {
         _videoList = data;
       });
 
-      // Configurar página inicial basada en ID o default
+      // Determinar el índice inicial basado en initialDishId (si existe)
       final initialIndex = widget.initialDishId != null
           ? _videoList.indexWhere((video) => video['id'] == widget.initialDishId)
           : 0;
@@ -71,31 +68,30 @@ class _CevichesPageState extends State<CevichesPage> {
       );
 
       _currentIndex = _controller.initialPage;
-      await _preloadAdjacentVideos(_currentIndex);
       
+      await _preloadAdjacentVideos(_currentIndex);
     } catch (e) {
       debugPrint('Error al cargar los videos: $e');
     }
   }
 
-  /// Precarga los videos adyacentes al índice actual
+  /// Precarga videos adyacentes al índice actual para mejorar rendimiento
   Future<void> _preloadAdjacentVideos(int index) async {
     if (_videoList.isEmpty) return;
     
+    // Calcula el rango de índices a precargar
     final startIndex = (index - _preloadWindow).clamp(0, _videoList.length - 1);
     final endIndex = (index + _preloadWindow).clamp(0, _videoList.length - 1);
 
-    // Precargar videos en el rango calculado
+    // Precargar videos en el rango
     for (var i = startIndex; i <= endIndex; i++) {
       if (!_preloadedIndices.contains(i)) {
-        _videoCache[i] = MyPost(
-          videoUrl: _videoList[i]['videoUrl'],
-        );
+        _videoCache[i] = MyPost(videoUrl: _videoList[i]['videoUrl']);
         _preloadedIndices.add(i);
       }
     }
 
-    // Limpiar videos fuera del rango de precarga
+    // Limpieza: eliminar videos fuera del rango de precarga
     _videoCache.removeWhere((key, _) {
       if (key < startIndex - 1 || key > endIndex + 1) {
         _preloadedIndices.remove(key);
@@ -105,8 +101,17 @@ class _CevichesPageState extends State<CevichesPage> {
     });
   }
 
-  /// Muestra un diálogo con los ingredientes del ceviche seleccionado
-  /// Incluye indicador de picante si corresponde
+  /// Obtiene o crea un widget de video para un índice específico
+  Widget _getVideoWidget(int index) {
+    if (!_videoCache.containsKey(index)) {
+      _videoCache[index] = MyPost(videoUrl: _videoList[index]['videoUrl']);
+      _preloadedIndices.add(index);
+    }
+    return _videoCache[index]!;
+  }
+
+  // ===== Métodos de UI =====
+  /// Muestra un diálogo con los ingredientes del ceviche
   void _showIngredients(BuildContext context, String title, List<dynamic> ingredients, bool isSpicy) {
     showDialog(
       context: context,
@@ -126,17 +131,18 @@ class _CevichesPageState extends State<CevichesPage> {
                   style: const TextStyle(fontFamily: 'Garamond', fontSize: 20, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 10),
-                // Indicador de picante si corresponde
+                
+                // Indicador de picante si aplica
                 if (isSpicy)
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(color: Colors.red[100], borderRadius: BorderRadius.circular(8)),
-                    child: Row(
+                    child: const Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.local_fire_department, color: Colors.red, size: 18),
-                        const SizedBox(width: 5),
-                        const Text(
+                        Icon(Icons.local_fire_department, color: Colors.red, size: 18),
+                        SizedBox(width: 5),
+                        Text(
                           "Picante",
                           style: TextStyle(fontFamily: 'Garamond', fontSize: 14, fontWeight: FontWeight.bold, color: Colors.red),
                         ),
@@ -144,27 +150,25 @@ class _CevichesPageState extends State<CevichesPage> {
                     ),
                   ),
                 const SizedBox(height: 10),
+                
                 // Lista de ingredientes
                 const Text("Ingredientes", style: TextStyle(fontFamily: 'Garamond', fontSize: 16, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 10),
                 Wrap(
                   spacing: 6,
                   runSpacing: 6,
-                  children: ingredients
-                      .map(
-                        (ingredient) => Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(color: Colors.lightBlue[100], borderRadius: BorderRadius.circular(8)),
-                          child: Text(
-                            ingredient,
-                            style: const TextStyle(fontFamily: 'Garamond', fontSize: 14, fontWeight: FontWeight.normal, color: Colors.black),
-                          ),
-                        ),
-                      )
-                      .toList(),
+                  children: ingredients.map((ingredient) => Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(color: Colors.lightBlue[100], borderRadius: BorderRadius.circular(8)),
+                    child: Text(
+                      ingredient,
+                      style: const TextStyle(fontFamily: 'Garamond', fontSize: 14, fontWeight: FontWeight.normal, color: Colors.black),
+                    ),
+                  )).toList(),
                 ),
+                
+                // Botón de cerrar
                 const SizedBox(height: 15),
-                // Botón para cerrar el diálogo
                 Align(
                   alignment: Alignment.centerRight,
                   child: TextButton(
@@ -200,53 +204,31 @@ class _CevichesPageState extends State<CevichesPage> {
                 return Stack(
                   alignment: Alignment.center,
                   children: [
-                    // Video principal
+                    // 1. Video de fondo del plato
                     Positioned.fill(child: _getVideoWidget(index)),
-                    // Botones de información y lista en la parte superior
+                    
+                    // 2. Botón de lista en la esquina superior derecha
                     Positioned(
                       top: 20,
                       right: 20,
-                      child: Row(
-                        children: [
-                          // Botón de información (ingredientes)
-                          GestureDetector(
-                            onTap: () => _showIngredients(context, video['title'], video['ingredients'], isSpicy),
-                            child: Container(
-                              width: 40,
-                              height: 40,
-                              margin: const EdgeInsets.only(right: 8),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(8),
-                                boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 4, offset: const Offset(2, 2))],
-                              ),
-                              child: const Center(
-                                child: Icon(Icons.info_outline, color: Color(0xFF0E4975), size: 24),
-                              ),
-                            ),
+                      child: GestureDetector(
+                        onTap: () => GoRouter.of(context).go('/listPage'),
+                        child: Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(8),
+                            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 4, offset: const Offset(2, 2))],
                           ),
-                          // Botón para volver a la lista
-                          GestureDetector(
-                            onTap: () {
-                              GoRouter.of(context).go('/listPage');
-                            },
-                            child: Container(
-                              width: 40,
-                              height: 40,
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(8),
-                                boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 4, offset: const Offset(2, 2))],
-                              ),
-                              child: const Center(
-                                child: Icon(Icons.list, color: Color(0xFF0E4975), size: 24),
-                              ),
-                            ),
+                          child: const Center(
+                            child: Icon(Icons.list, color: Color(0xFF0E4975), size: 24),
                           ),
-                        ],
+                        ),
                       ),
                     ),
-                    // Información del ceviche en la parte inferior
+                    
+                    // 3. Información del plato
                     Positioned(
                       bottom: 100,
                       left: 20,
@@ -254,26 +236,50 @@ class _CevichesPageState extends State<CevichesPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Título con indicador de picante
+                          // 3.1. Título, indicador de picante y botón de información
                           Row(
                             children: [
-                              Text(
-                                video['title'],
-                                style: const TextStyle(
-                                  fontFamily: 'Garamond',
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                  shadows: [Shadow(blurRadius: 10.0, color: Colors.black, offset: Offset(2, 2))],
+                              // Título con Expanded para manejar textos largos
+                              Expanded(
+                                child: Text(
+                                  video['title'],
+                                  style: const TextStyle(
+                                    fontFamily: 'Garamond',
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                    shadows: [Shadow(blurRadius: 10.0, color: Colors.black, offset: Offset(2, 2))],
+                                  ),
+                                  textAlign: TextAlign.left,
                                 ),
-                                textAlign: TextAlign.left,
                               ),
+                              
+                              // Indicador de picante si aplica
                               const SizedBox(width: 8),
                               if (isSpicy) const Icon(Icons.local_fire_department, color: Colors.red, size: 24),
+                              
+                              // Botón de información
+                              const SizedBox(width: 8),
+                              GestureDetector(
+                                onTap: () => _showIngredients(context, video['title'], video['ingredients'], isSpicy),
+                                child: Container(
+                                  width: 40,
+                                  height: 40,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(8),
+                                    boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 4, offset: const Offset(2, 2))],
+                                  ),
+                                  child: const Center(
+                                    child: Icon(Icons.info_outline, color: Color(0xFF0E4975), size: 24),
+                                  ),
+                                ),
+                              ),
                             ],
                           ),
+                          
+                          // 3.2. Descripción del plato
                           const SizedBox(height: 4),
-                          // Descripción del ceviche
                           Text(
                             video['description'],
                             style: const TextStyle(
@@ -285,8 +291,9 @@ class _CevichesPageState extends State<CevichesPage> {
                             ),
                             textAlign: TextAlign.left,
                           ),
+                          
+                          // 3.3. Precio del plato
                           const SizedBox(height: 4),
-                          // Precio del ceviche
                           Text(
                             "S/ ${video['price']}",
                             style: const TextStyle(
@@ -306,16 +313,5 @@ class _CevichesPageState extends State<CevichesPage> {
               },
             ),
     );
-  }
-
-  /// Obtiene o crea el widget de video para un índice
-  Widget _getVideoWidget(int index) {
-    if (!_videoCache.containsKey(index)) {
-      _videoCache[index] = MyPost(
-        videoUrl: _videoList[index]['videoUrl'],
-      );
-      _preloadedIndices.add(index);
-    }
-    return _videoCache[index]!;
   }
 }

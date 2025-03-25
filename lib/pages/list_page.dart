@@ -374,6 +374,11 @@ class _ListPageState extends State<ListPage> {
         elevation: 0,
         backgroundColor: Colors.white,
         foregroundColor: Colors.black87,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Color(0xFF0E4975)),
+          onPressed: () => GoRouter.of(context).go('/'),
+          tooltip: 'Regresar',
+        ),
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
