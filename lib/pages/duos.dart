@@ -1,14 +1,14 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:go_router/go_router.dart'; // Import GoRouter
+import 'package:go_router/go_router.dart';
 import 'package:perlaazul/posts/mypost_1.dart';
 
-/// Página que muestra los duos disponibles en el menú
-/// Permite la visualización de videos y detalles de cada duo
+/// Página que muestra los dúos disponibles en el menú
+/// Implementa carga optimizada de videos para mejor rendimiento
 class DuosPage extends StatefulWidget {
   /// ID opcional del plato a mostrar inicialmente
-  /// Se utiliza cuando se navega desde la lista del menú para mostrar un duo específico
+  /// Se utiliza cuando se navega desde la lista del menú para mostrar un dúo específico
   final int? initialDishId;
   
   const DuosPage({
@@ -21,8 +21,18 @@ class DuosPage extends StatefulWidget {
 }
 
 class _DuosPageState extends State<DuosPage> {
+  // Controlador para manejar la navegación entre videos
   late PageController _controller;
+  // Lista que almacena todos los dúos con sus detalles
   List<dynamic> _videoList = [];
+  // Cache de widgets de video para optimizar memoria
+  final Map<int, MyPost> _videoCache = {};
+  // Índice del video actual
+  int _currentIndex = 0;
+  // Ventana de precarga (videos antes y después del actual)
+  static const int _preloadWindow = 1;
+  // Control de videos precargados
+  final Set<int> _preloadedIndices = {};
 
   @override
   void initState() {
@@ -30,27 +40,85 @@ class _DuosPageState extends State<DuosPage> {
     _loadVideos();
   }
 
-  /// Carga los videos desde el archivo JSON y configura la página inicial
-  /// Si se proporciona un initialDishId, muestra el video correspondiente
+  @override
+  void dispose() {
+    _controller.dispose();
+    // Limpiar todos los videos en caché al salir
+    _videoCache.clear();
+    _preloadedIndices.clear();
+    super.dispose();
+  }
+
+  /// Carga los datos de los videos y configura la página inicial
   Future<void> _loadVideos() async {
-    final String response = await rootBundle.loadString('assets/duos.json');
-    final List<dynamic> data = json.decode(response);
+    try {
+      final String response = await rootBundle.loadString('assets/duos.json');
+      final List<dynamic> data = json.decode(response);
 
-    setState(() {
-      _videoList = data;
-    });
+      if (!mounted) return;
 
-    // Configuración de la página inicial basada en el ID proporcionado
-    if (widget.initialDishId != null) {
-      final initialIndex = _videoList.indexWhere((video) => video['id'] == widget.initialDishId);
-      if (initialIndex != -1) {
-        _controller = PageController(initialPage: initialIndex);
-      }
-    } else {
-      _controller = PageController(initialPage: 0);
+      setState(() {
+        _videoList = data;
+      });
+
+      final initialIndex = widget.initialDishId != null
+          ? _videoList.indexWhere((video) => video['id'] == widget.initialDishId)
+          : 0;
+      
+      _controller = PageController(
+        initialPage: initialIndex != -1 ? initialIndex : 0,
+        viewportFraction: 1.0,
+      );
+
+      _currentIndex = _controller.initialPage;
+      
+      // Precargar solo el video inicial y sus adyacentes
+      await _preloadAdjacentVideos(_currentIndex);
+      
+    } catch (e) {
+      debugPrint('Error al cargar los videos: $e');
     }
   }
 
+  /// Precarga los videos adyacentes al índice actual
+  Future<void> _preloadAdjacentVideos(int index) async {
+    if (_videoList.isEmpty) return;
+    
+    final startIndex = (index - _preloadWindow).clamp(0, _videoList.length - 1);
+    final endIndex = (index + _preloadWindow).clamp(0, _videoList.length - 1);
+
+    // Precargar videos en el rango calculado
+    for (var i = startIndex; i <= endIndex; i++) {
+      if (!_preloadedIndices.contains(i)) {
+        _videoCache[i] = MyPost(
+          videoUrl: _videoList[i]['videoUrl'],
+        );
+        _preloadedIndices.add(i);
+      }
+    }
+
+    // Limpiar videos fuera del rango de precarga
+    _videoCache.removeWhere((key, _) {
+      if (key < startIndex - 1 || key > endIndex + 1) {
+        _preloadedIndices.remove(key);
+        return true;
+      }
+      return false;
+    });
+  }
+
+  /// Obtiene o crea el widget de video para un índice
+  Widget _getVideoWidget(int index) {
+    if (!_videoCache.containsKey(index)) {
+      _videoCache[index] = MyPost(
+        videoUrl: _videoList[index]['videoUrl'],
+      );
+      _preloadedIndices.add(index);
+    }
+    return _videoCache[index]!;
+  }
+
+  /// Muestra el diálogo de ingredientes
   void _showIngredients(BuildContext context, String title, List<dynamic> ingredients, bool isSpicy) {
     showDialog(
       context: context,
@@ -129,6 +197,10 @@ class _DuosPageState extends State<DuosPage> {
               controller: _controller,
               scrollDirection: Axis.vertical,
               itemCount: _videoList.length,
+              onPageChanged: (index) {
+                setState(() => _currentIndex = index);
+                _preloadAdjacentVideos(index);
+              },
               itemBuilder: (context, index) {
                 final video = _videoList[index];
                 final bool isSpicy = video['spicy'] ?? false;
@@ -136,20 +208,20 @@ class _DuosPageState extends State<DuosPage> {
                 return Stack(
                   alignment: Alignment.center,
                   children: [
-                    Positioned.fill(child: MyPost(videoUrl: video['videoUrl'])),
-                    // Info & List Buttons (Switched Positions)
+                    // Video principal
+                    Positioned.fill(child: _getVideoWidget(index)),
+                    // Botones de información y lista
                     Positioned(
                       top: 20,
                       right: 20,
                       child: Row(
                         children: [
-                          // Info Button (Moved to the Left)
                           GestureDetector(
                             onTap: () => _showIngredients(context, video['title'], video['ingredients'], isSpicy),
                             child: Container(
                               width: 40,
                               height: 40,
-                              margin: const EdgeInsets.only(right: 8), // Adjusted margin for spacing
+                              margin: const EdgeInsets.only(right: 8),
                               decoration: BoxDecoration(
                                 color: Colors.white,
                                 borderRadius: BorderRadius.circular(8),
@@ -160,11 +232,8 @@ class _DuosPageState extends State<DuosPage> {
                               ),
                             ),
                           ),
-                          // List Button (Moved to the Right)
                           GestureDetector(
-                            onTap: () {
-                              GoRouter.of(context).go('/listPage');
-                            },
+                            onTap: () => GoRouter.of(context).go('/listPage'),
                             child: Container(
                               width: 40,
                               height: 40,
@@ -181,7 +250,7 @@ class _DuosPageState extends State<DuosPage> {
                         ],
                       ),
                     ),
-                    // Title, Spicy Indicator, Description, and Price overlay
+                    // Información del plato
                     Positioned(
                       bottom: 100,
                       left: 20,
@@ -189,7 +258,6 @@ class _DuosPageState extends State<DuosPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Title with Spicy Indicator
                           Row(
                             children: [
                               Text(
@@ -208,7 +276,6 @@ class _DuosPageState extends State<DuosPage> {
                             ],
                           ),
                           const SizedBox(height: 4),
-                          // Description
                           Text(
                             video['description'],
                             style: const TextStyle(
@@ -221,7 +288,6 @@ class _DuosPageState extends State<DuosPage> {
                             textAlign: TextAlign.left,
                           ),
                           const SizedBox(height: 4),
-                          // Price
                           Text(
                             "S/ ${video['price']}",
                             style: const TextStyle(

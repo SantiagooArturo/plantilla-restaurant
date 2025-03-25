@@ -2,103 +2,84 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:video_player/video_player.dart';
 
+/// Widget que maneja la reproducción de videos individuales
+/// Implementa optimizaciones para carga rápida y manejo eficiente de recursos
 class MyPost extends StatefulWidget {
-  final String videoUrl; // URL del video a reproducir
+  final String videoUrl;
   
-  // Constructor con parámetro obligatorio
-  const MyPost({super.key, required this.videoUrl});
+  const MyPost({
+    super.key, 
+    required this.videoUrl,
+  });
   
   @override
   _MyPostState createState() => _MyPostState();
 }
 
 class _MyPostState extends State<MyPost> with WidgetsBindingObserver {
-  // -- VARIABLES --
   late VideoPlayerController _controller;
   bool _isInitialized = false;
-  bool _userPaused = false; // Flag para saber si el usuario pausó manualmente
-  
-  // -- CICLO DE VIDA --
+  bool _isBuffering = false;
   
   @override
   void initState() {
     super.initState();
-    // Registramos observador para cambios de ciclo de vida
     WidgetsBinding.instance.addObserver(this);
-    // Iniciamos el reproductor
-    _cargarVideo();
+    _initializeVideo();
   }
   
   @override
   void dispose() {
-    // Limpieza para evitar memory leaks
     WidgetsBinding.instance.removeObserver(this);
     _controller.dispose();
     super.dispose();
   }
-  
-  // -- MÉTODOS PRIVADOS --
-  
-  // Carga y prepara el video para reproducción
-  Future<void> _cargarVideo() async {
-    _controller = VideoPlayerController.network(widget.videoUrl);
+
+  Future<void> _initializeVideo() async {
+    _controller = VideoPlayerController.network(
+      widget.videoUrl,
+      videoPlayerOptions: VideoPlayerOptions(
+        mixWithOthers: true,
+      ),
+    );
     
     try {
-      // Configuración inicial
+      // Inicializar con volumen 0 para permitir autoplay
+      await _controller.setVolume(0.0);
       await _controller.initialize();
       await _controller.setLooping(true);
       
-      // Truco para web: empezar mudo para evitar bloqueos del navegador
-      if (kIsWeb) {
-        await _controller.setVolume(0.0);
-      } else {
-        await _controller.setVolume(1.0);
-      }
-      
-      // Verificar que seguimos en pantalla
       if (!mounted) return;
       
-      // Actualizar estado y empezar reproducción
       setState(() {
         _isInitialized = true;
-        _userPaused = false;
       });
       
-      // Iniciar reproducción inmediatamente
-      _controller.play().then((_) {
-        // Activar sonido en web después de comenzar
-        if (kIsWeb && mounted) {
-          Future.delayed(const Duration(seconds: 1), () {
-            _controller.setVolume(0.0);
-          });
-        }
-      }).catchError((e) {
-        print("Error al reproducir: $e");
-      });
+      _controller.play();
+      
     } catch (e) {
-      print("Error al inicializar: $e");
+      debugPrint("Error al inicializar: $e");
     }
   }
-  
-  // -- GESTIÓN DE CICLO DE VIDA --
-  
+
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (!_isInitialized) return;
     
-    if (state == AppLifecycleState.resumed) {
-      // Solo reproducir si no fue pausado por el usuario
-      if (!_userPaused) {
+    switch (state) {
+      case AppLifecycleState.resumed:
         _controller.play();
-      }
-    } else if (state == AppLifecycleState.paused) {
-      // Guardar estado de reproducción actual antes de pausar
-      _userPaused = !_controller.value.isPlaying;
-      _controller.pause();
+        break;
+      case AppLifecycleState.paused:
+      case AppLifecycleState.inactive:
+        _controller.pause();
+        break;
+      case AppLifecycleState.detached:
+        break;
+      default:
+        break;
     }
   }
-  
-  // -- CONSTRUCCIÓN DE LA UI --
   
   @override
   Widget build(BuildContext context) {
@@ -106,47 +87,52 @@ class _MyPostState extends State<MyPost> with WidgetsBindingObserver {
       onTap: () {
         if (!_isInitialized) return;
         
-        // Actualizar flag de pausa manual y cambiar estado
-        setState(() {
-          if (_controller.value.isPlaying) {
-            _controller.pause();
-            _userPaused = true; // El usuario pausó manualmente
-          } else {
-            _controller.play();
-            _userPaused = false; // El usuario resumió manualmente
-          }
-        });
+        if (_controller.value.volume > 0) {
+          _controller.setVolume(0.0);
+        } else {
+          _controller.setVolume(1.0);
+        }
       },
       
       child: Stack(
-        alignment: Alignment.center,
+        fit: StackFit.expand,
         children: [
-          // Fondo negro base
           Container(color: Colors.black),
           
-          // Video player - solo visible cuando está inicializado
           if (_isInitialized)
-            Positioned.fill(
-              child: FittedBox(
-                fit: BoxFit.cover,
-                child: SizedBox(
-                  width: _controller.value.size.width,
-                  height: _controller.value.size.height,
-                  child: VideoPlayer(_controller),
-                ),
+            FittedBox(
+              fit: BoxFit.cover,
+              child: SizedBox(
+                width: _controller.value.size.width,
+                height: _controller.value.size.height,
+                child: VideoPlayer(_controller),
               ),
             ),
           
-          // Indicador de carga - solo visible durante inicialización
-          if (!_isInitialized)
-            const Center(child: CircularProgressIndicator()),
+          if (!_isInitialized || _isBuffering)
+            const Center(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+              ),
+            ),
           
-          // Botón de play - solo visible cuando el usuario pausa manualmente
-          if (_isInitialized && _userPaused)
-            const Icon(
-              Icons.play_arrow,
-              size: 80,
-              color: Colors.white,
+          // Indicador de sonido
+          if (_isInitialized)
+            Positioned(
+              bottom: 20,
+              right: 20,
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.6),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  _controller.value.volume > 0 ? Icons.volume_up : Icons.volume_off,
+                  color: Colors.white,
+                  size: 20,
+                ),
+              ),
             ),
         ],
       ),
