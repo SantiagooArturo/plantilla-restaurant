@@ -9,8 +9,17 @@ import 'package:perlaazul/pages/sabadosydomingos.dart';
 import 'package:perlaazul/theme/apptheme.dart';
 import 'package:perlaazul/basescreen.dart';
 import 'package:perlaazul/pages/list_page.dart';
+import 'dart:async';
+
+// Clave global para manejar la recarga de la página
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
+// En Flutter web, isFirstLoad siempre será true cuando se recarga la página
+bool isFirstLoad = true;
 
 void main() {
+  // Al iniciar la app, siempre mostramos el splash
+  isFirstLoad = true;
   runApp(const MyApp());
 }
 
@@ -28,11 +37,80 @@ class MyApp extends StatelessWidget {
   }
 }
 
+/// Pantalla de splash que muestra el logo del restaurante por 2 segundos
+class SplashScreen extends StatefulWidget {
+  const SplashScreen({super.key});
+
+  @override
+  State<SplashScreen> createState() => _SplashScreenState();
+}
+
+class _SplashScreenState extends State<SplashScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Navegar a la pantalla principal después de 2 segundos
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted) {
+        GoRouter.of(context).go('/home');
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Logo del restaurante
+            Image.asset(
+              'assets/images/perlaazul.jpeg',
+              width: 200,
+              height: 200,
+            ),
+            const SizedBox(height: 24),
+            // Nombre del restaurante
+            const Text(
+              'Perla Azul',
+              style: TextStyle(
+                fontFamily: 'Garamond',
+                fontSize: 30,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF0E4975),
+              ),
+            ),
+            const SizedBox(height: 8),
+            // Texto de carga
+            const Text(
+              'Restaurante',
+              style: TextStyle(
+                fontFamily: 'Garamond',
+                fontSize: 18,
+                color: Color(0xFF0E4975),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 // Define navigation routes using GoRouter
 final GoRouter _router = GoRouter(
+  navigatorKey: navigatorKey,
+  initialLocation: '/',
+  // Quitamos el redirect para que siempre pase por el splash
   routes: [
     GoRoute(
       path: '/',
+      builder: (context, state) => const SplashScreen(),
+    ),
+    GoRoute(
+      path: '/home',
       builder: (context, state) => WebWrapper(
         child: BaseScreen(currentIndex: 0, child: PiqueosPage()),
       ),

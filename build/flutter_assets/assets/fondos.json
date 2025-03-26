@@ -6,7 +6,8 @@
     "description": "",
     "price": "40.00",
     "ingredients": ["Tomato", "Onion", "Garlic", "Chicken"],
-    "spicy": false
+    "spicy": false,
+    "class": "Fondos"
   },
   {
     "id": 2,
@@ -15,7 +16,8 @@
     "description": "",
     "price": "40.00",
     "ingredients": ["Tomato", "Onion", "Garlic", "Chicken"],
-    "spicy": false
+    "spicy": false,
+    "class": "Fondos"
   },
   {
     "id": 3,
@@ -24,7 +26,8 @@
     "description": "",
     "price": "45.00",
     "ingredients": ["Tomato", "Onion", "Garlic", "Chicken"],
-    "spicy": false
+    "spicy": false,
+    "class": "Fondos"
   },
   {
     "id": 4,
@@ -33,7 +36,8 @@
     "description": "",
     "price": "50.00",
     "ingredients": ["Tomato", "Onion", "Garlic", "Chicken"],
-    "spicy": false
+    "spicy": false,
+    "class": "Fondos"
   },
   {
     "id": 5,
@@ -42,7 +46,8 @@
     "description": "",
     "price": "37.00",
     "ingredients": ["Tomato", "Onion", "Garlic", "Chicken"],
-    "spicy": false
+    "spicy": false,
+    "class": "Fondos"
   },
   {
     "id": 6,
@@ -51,7 +56,8 @@
     "description": "",
     "price": "50.00",
     "ingredients": ["Tomato", "Onion", "Garlic", "Chicken"],
-    "spicy": false
+    "spicy": false,
+    "class": "Fondos"
   },
   {
     "id": 7,
@@ -60,6 +66,7 @@
     "description": "",
     "price": "55.00",
     "ingredients": ["Tomato", "Onion", "Garlic", "Chicken"],
-    "spicy": false
+    "spicy": false,
+    "class": "Fondos"
   }
 ]

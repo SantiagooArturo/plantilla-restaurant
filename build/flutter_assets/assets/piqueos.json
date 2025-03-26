@@ -6,7 +6,8 @@
     "description": "Pulpo al olivo, causa de langostinos, chicharron de pescado, ceviche",
     "price": "90.00",
     "ingredients": ["Tomato", "Onion", "Garlic", "Chicken"],
-    "spicy": true
+    "spicy": true,
+    "class": "Piqueos"
   },
   {
     "id": 2,
@@ -15,7 +16,8 @@
     "description": "10 und de masa wantan rellena de queso",
     "price": "22.00",
     "ingredients": ["Tomato", "Onion", "Garlic", "Chicken"],
-    "spicy": false
+    "spicy": false,
+    "class": "Piqueos"
   },
   {
     "id": 3,
@@ -24,7 +26,8 @@
     "description": "12 bastones de yuca crocantes con crema a la huancaina",
     "price": "20.00",
     "ingredients": ["Tomato", "Onion", "Garlic", "Chicken"],
-    "spicy": false
+    "spicy": false,
+    "class": "Piqueos"
   },
   {
     "id": 4,
@@ -33,6 +36,7 @@
     "description": "Láminas de pulpo bañadas en salsa al olivo servido con galletas",
     "price": "45.00",
     "ingredients": ["Tomato", "Onion", "Garlic", "Chicken"],
-    "spicy": false
+    "spicy": false,
+    "class": "Piqueos"
   }
 ]

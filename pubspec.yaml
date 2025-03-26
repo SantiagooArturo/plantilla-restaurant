@@ -38,6 +38,7 @@ flutter:
     - assets/chicharrones.json
     - assets/fondos.json
     - assets/sabadosydomingos.json
+    - assets/images/perlaazul.jpeg
 
   fonts:
     - family: Garamond

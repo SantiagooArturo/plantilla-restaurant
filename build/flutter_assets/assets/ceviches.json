@@ -6,7 +6,8 @@
     "description": "",
     "price": "55.00",
     "ingredients": ["Tomato", "Onion", "Garlic", "Chicken"],
-    "spicy": true
+    "spicy": true,
+    "class": "Ceviches"
   },
   {
     "id": 2,
@@ -15,7 +16,8 @@
     "description": "",
     "price": "40.00",
     "ingredients": ["Tomato", "Onion", "Garlic", "Chicken"],
-    "spicy": true
+    "spicy": true,
+    "class": "Ceviches"
   },
   {
     "id": 3,
@@ -24,6 +26,7 @@
     "description": "",
     "price": "55.00",
     "ingredients": ["Tomato", "Onion", "Garlic", "Chicken"],
-    "spicy": true
+    "spicy": true,
+    "class": "Ceviches"
   }
 ]

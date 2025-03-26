@@ -12,6 +12,7 @@ class Dish {
   final List<String> ingredients;
   final bool spicy;
   final String videoUrl; // URL del video del plato
+  final String dishClass; // Categoría del plato
 
   Dish({
     required this.id,
@@ -21,6 +22,7 @@ class Dish {
     required this.ingredients,
     required this.spicy,
     required this.videoUrl,
+    required this.dishClass,
   });
 
   // Crea un plato desde un JSON
@@ -33,6 +35,7 @@ class Dish {
       ingredients: List<String>.from(json['ingredients'] ?? []),
       spicy: json['spicy'] ?? false,
       videoUrl: json['videoUrl'] ?? '',
+      dishClass: json['class'] ?? '',
     );
   }
 }
@@ -164,12 +167,10 @@ class _SpicyChip extends StatelessWidget {
 /// Incluye título, precio, descripción, ingredientes y opción para ver el video
 class DishCard extends StatelessWidget {
   final Dish dish;
-  final String category;
 
   const DishCard({
     super.key, 
     required this.dish,
-    required this.category,
   });
 
   @override
@@ -191,20 +192,23 @@ class DishCard extends StatelessWidget {
           onTap: () {
             // Navegación dinámica a la página de categoría correspondiente
             // Se pasa el ID del plato para mostrar el video específico
-            switch (category) {
-              case 'ceviches':
+            switch (dish.dishClass) {
+              case 'Ceviches':
                 context.push('/Ceviches', extra: dish.id);
                 break;
-              case 'chicharrones':
+              case 'Chicharrones':
                 context.push('/Chicharrones', extra: dish.id);
                 break;
-              case 'fondos':
+              case 'Fondos':
                 context.push('/Fondos', extra: dish.id);
                 break;
-              case 'piqueos':
+              case 'Piqueos':
                 context.push('/Piqueos', extra: dish.id);
                 break;
-              case 'sabadosydomingos':
+              case 'Duos':
+                context.push('/Duos', extra: dish.id);
+                break;
+              case 'Sábados y Domingos':
                 context.push('/SabadosYDomingos', extra: dish.id);
                 break;
             }
@@ -337,14 +341,28 @@ class _ListPageState extends State<ListPage> {
         'chicharrones',
         'fondos',
         'piqueos',
-        'sabadosydomingos'
+        'sabadosydomingos',
+        'duos'
       ];
+      
+      // Lista para almacenar todos los platos
+      List<Dish> allDishes = [];
 
+      // Cargar todos los platos desde los diferentes archivos JSON
       for (final category in categories) {
         final jsonString = await rootBundle.loadString('assets/$category.json');
         final List<dynamic> jsonList = json.decode(jsonString);
         final dishes = jsonList.map((json) => Dish.fromJson(json)).toList();
-        categorizedDishes[category] = dishes;
+        allDishes.addAll(dishes);
+      }
+
+      // Agrupar platos por su campo class, no por nombre de archivo
+      categorizedDishes = {};
+      for (final dish in allDishes) {
+        if (!categorizedDishes.containsKey(dish.dishClass)) {
+          categorizedDishes[dish.dishClass] = [];
+        }
+        categorizedDishes[dish.dishClass]!.add(dish);
       }
 
       setState(() {
@@ -356,14 +374,6 @@ class _ListPageState extends State<ListPage> {
         isLoading = false;
       });
     }
-  }
-
-  // Formatea el nombre de la categoría para mostrarlo si no lo mostrara en mayusculas y desordenado!
-  String _formatCategoryName(String category) {
-    return category
-        .split('_')
-        .map((word) => word[0].toUpperCase() + word.substring(1))
-        .join(' ');
   }
 
   @override
@@ -384,26 +394,48 @@ class _ListPageState extends State<ListPage> {
           ? const Center(child: CircularProgressIndicator())
           : Container(
               color: Colors.white,
-              child: ListView.builder(
+              child: ListView(
                 padding: const EdgeInsets.all(16),
-                itemCount: categorizedDishes.length,
-                itemBuilder: (context, index) {
-                  final category = categorizedDishes.keys.elementAt(index);
-                  final dishes = categorizedDishes[category]!;
-
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      CategoryHeader(title: _formatCategoryName(category)),
-                      ...dishes.map((dish) => DishCard(
-                        dish: dish,
-                        category: category,
-                      )),
-                    ],
-                  );
-                },
+                children: _buildCategoriesInOrder(),
               ),
             ),
     );
+  }
+
+  // Construye las categorías en un orden específico
+  List<Widget> _buildCategoriesInOrder() {
+    // Definir el orden de las categorías
+    final orderedCategories = [
+      'Ceviches',
+      'Piqueos',
+      'Chicharrones',
+      'Duos',
+      'Fondos',
+      'Sábados y Domingos',
+    ];
+    
+    List<Widget> result = [];
+    
+    // Agregar categorías en el orden especificado
+    for (final categoryName in orderedCategories) {
+      if (categorizedDishes.containsKey(categoryName)) {
+        final dishes = categorizedDishes[categoryName]!;
+        
+        result.add(CategoryHeader(title: categoryName));
+        result.addAll(dishes.map((dish) => DishCard(dish: dish)));
+      }
+    }
+    
+    // Por si hay categorías que no estén en la lista ordenada
+    for (final category in categorizedDishes.keys) {
+      if (!orderedCategories.contains(category)) {
+        final dishes = categorizedDishes[category]!;
+        
+        result.add(CategoryHeader(title: category));
+        result.addAll(dishes.map((dish) => DishCard(dish: dish)));
+      }
+    }
+    
+    return result;
   }
 }
