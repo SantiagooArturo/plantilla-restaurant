@@ -14,12 +14,25 @@ import 'dart:async';
 // Clave global para manejar la recarga de la página
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
-// En Flutter web, isFirstLoad siempre será true cuando se recarga la página
-bool isFirstLoad = true;
+// Control de inicio de la aplicación
+class AppState {
+  static bool _isInitialLaunch = true;
+  
+  static bool get isInitialLaunch => _isInitialLaunch;
+  
+  static void markAsLaunched() {
+    _isInitialLaunch = false;
+  }
+  
+  // Este método se llamará cuando se navegue desde otra parte de la app
+  static void skipSplashOnInternalNav(String location) {
+    if (!location.startsWith('/Splash')) {
+      _isInitialLaunch = false;
+    }
+  }
+}
 
 void main() {
-  // Al iniciar la app, siempre mostramos el splash
-  isFirstLoad = true;
   runApp(const MyApp());
 }
 
@@ -52,6 +65,7 @@ class _SplashScreenState extends State<SplashScreen> {
     // Navegar a la pantalla principal después de 2 segundos
     Future.delayed(const Duration(seconds: 2), () {
       if (mounted) {
+        AppState.markAsLaunched();
         GoRouter.of(context).go('/home');
       }
     });
@@ -103,11 +117,30 @@ class _SplashScreenState extends State<SplashScreen> {
 final GoRouter _router = GoRouter(
   navigatorKey: navigatorKey,
   initialLocation: '/',
-  // Quitamos el redirect para que siempre pase por el splash
+  redirect: (context, state) {
+    // Registrar la navegación para evitar mostrar splash en navegaciones internas
+    AppState.skipSplashOnInternalNav(state.uri.toString());
+    
+    // Si es la primera vez que se inicia/recarga, mostrar splash
+    if (AppState.isInitialLaunch) {
+      if (state.uri.toString() != '/Splash') {
+        return '/Splash';
+      }
+    } else if (state.uri.toString() == '/Splash') {
+      // Si no es la primera vez y se intenta ir al splash, redirigir a home
+      return '/home';
+    }
+    
+    return null;
+  },
   routes: [
     GoRoute(
-      path: '/',
+      path: '/Splash',
       builder: (context, state) => const SplashScreen(),
+    ),
+    GoRoute(
+      path: '/',
+      redirect: (_, __) => '/home',
     ),
     GoRoute(
       path: '/home',
