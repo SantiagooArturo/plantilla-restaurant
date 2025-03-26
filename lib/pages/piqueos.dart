@@ -184,6 +184,150 @@ class _PiqueosPageState extends State<PiqueosPage> {
     );
   }
 
+  /// Muestra un diálogo con la información del restaurante
+  void _showRestaurantInfo(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+          child: Container(
+            width: MediaQuery.of(context).size.width * 0.8,
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Encabezado con logo y nombre
+                Row(
+                  children: [
+                    Container(
+                      width: 50,
+                      height: 50,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF0E4975).withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Center(
+                        child: Icon(Icons.restaurant, color: Color(0xFF0E4975), size: 30),
+                      ),
+                    ),
+                    const SizedBox(width: 15),
+                    const Expanded(
+                      child: Text(
+                        "Perla Azul Restaurant",
+                        style: TextStyle(
+                          fontFamily: 'Garamond',
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                
+                // Ubicación
+                const Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(Icons.location_on, color: Color(0xFF0E4975), size: 20),
+                    SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        "Av. Carlos Valderrama 693, Trujillo 13008",
+                        style: TextStyle(
+                          fontFamily: 'Garamond',
+                          fontSize: 16,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 15),
+                
+                // Teléfono
+                const Row(
+                  children: [
+                    Icon(Icons.phone, color: Color(0xFF0E4975), size: 20),
+                    SizedBox(width: 10),
+                    Text(
+                      "+51 975 123 456",
+                      style: TextStyle(
+                        fontFamily: 'Garamond',
+                        fontSize: 16,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 15),
+                
+                // Horario de atención
+                const Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(Icons.access_time, color: Color(0xFF0E4975), size: 20),
+                    SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        "Lunes a Domingo: 12:00 PM - 10:00 PM",
+                        style: TextStyle(
+                          fontFamily: 'Garamond',
+                          fontSize: 16,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 15),
+                
+                // Especialidad
+                const Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(Icons.star, color: Color(0xFF0E4975), size: 20),
+                    SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        "Especialidad en mariscos y pescados frescos",
+                        style: TextStyle(
+                          fontFamily: 'Garamond',
+                          fontSize: 16,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                
+                const SizedBox(height: 25),
+                
+                // Botón para cerrar
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    style: TextButton.styleFrom(
+                      backgroundColor: const Color(0xFF0E4975),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    ),
+                    child: const Text(
+                      "Cerrar",
+                      style: TextStyle(
+                        fontFamily: 'Garamond',
+                        color: Colors.white,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -228,7 +372,28 @@ class _PiqueosPageState extends State<PiqueosPage> {
                       ),
                     ),
                     
-                    // 3. Información del plato
+                    // 3. Botón de información del restaurante
+                    Positioned(
+                      top: 20,
+                      right: 70,
+                      child: GestureDetector(
+                        onTap: () => _showRestaurantInfo(context),
+                        child: Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(8),
+                            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 4, offset: const Offset(2, 2))],
+                          ),
+                          child: const Center(
+                            child: Icon(Icons.help, color: Color(0xFF0E4975), size: 24),
+                          ),
+                        ),
+                      ),
+                    ),
+                    
+                    // 4. Información del plato
                     Positioned(
                       bottom: 100,
                       left: 20,
@@ -236,7 +401,7 @@ class _PiqueosPageState extends State<PiqueosPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // 3.1. Título, indicador de picante y botón de información
+                          // 4.1. Título, indicador de picante y botón de información
                           Row(
                             children: [
                               // Título con Expanded para manejar textos largos
@@ -278,7 +443,7 @@ class _PiqueosPageState extends State<PiqueosPage> {
                             ],
                           ),
                           
-                          // 3.2. Descripción del plato
+                          // 4.2. Descripción del plato
                           const SizedBox(height: 4),
                           Text(
                             video['description'],
@@ -292,7 +457,7 @@ class _PiqueosPageState extends State<PiqueosPage> {
                             textAlign: TextAlign.left,
                           ),
                           
-                          // 3.3. Precio del plato
+                          // 4.3. Precio del plato
                           const SizedBox(height: 4),
                           Text(
                             "S/ ${video['price']}",

@@ -16,6 +16,8 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 // Control de inicio de la aplicación
 class AppState {
+  // Esta variable siempre es true al iniciar la aplicación
+  // Se resetea cada vez que la app se recarga en web
   static bool _isInitialLaunch = true;
   
   static bool get isInitialLaunch => _isInitialLaunch;
@@ -24,15 +26,18 @@ class AppState {
     _isInitialLaunch = false;
   }
   
-  // Este método se llamará cuando se navegue desde otra parte de la app
+  // Este método ya no se necesita para web, porque queremos mostrar
+  // el splash siempre al iniciar/recargar la app
   static void skipSplashOnInternalNav(String location) {
-    if (!location.startsWith('/Splash')) {
-      _isInitialLaunch = false;
-    }
+    // No hacemos nada, para permitir que el splash se muestre siempre
   }
 }
 
 void main() {
+  // Reiniciar el estado al iniciar la aplicación
+  // Esto es especialmente importante para web
+  AppState._isInitialLaunch = true;
+  
   runApp(const MyApp());
 }
 
@@ -66,7 +71,15 @@ class _SplashScreenState extends State<SplashScreen> {
     Future.delayed(const Duration(seconds: 2), () {
       if (mounted) {
         AppState.markAsLaunched();
-        GoRouter.of(context).go('/home');
+        
+        // Uso GoRouter.of para asegurar que la navegación funcione correctamente
+        // en el contexto de Flutter web
+        final router = GoRouter.of(context);
+        if (router.canPop()) {
+          router.pop();
+        } else {
+          router.go('/home');
+        }
       }
     });
   }
@@ -118,16 +131,13 @@ final GoRouter _router = GoRouter(
   navigatorKey: navigatorKey,
   initialLocation: '/',
   redirect: (context, state) {
-    // Registrar la navegación para evitar mostrar splash en navegaciones internas
-    AppState.skipSplashOnInternalNav(state.uri.toString());
-    
-    // Si es la primera vez que se inicia/recarga, mostrar splash
+    // En web, siempre mostramos el splash al iniciar la app
     if (AppState.isInitialLaunch) {
       if (state.uri.toString() != '/Splash') {
         return '/Splash';
       }
     } else if (state.uri.toString() == '/Splash') {
-      // Si no es la primera vez y se intenta ir al splash, redirigir a home
+      // Si ya se mostró el splash y se intenta volver a él, redirigir a home
       return '/home';
     }
     
@@ -242,6 +252,8 @@ class WebWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Al reconstruir el WebWrapper (como sucede en navegaciones internas),
+    // no afectamos el estado de splash para la próxima recarga de la página
     return Center(
       child: SizedBox(
         width: 500, // Keep UI width limited for web
