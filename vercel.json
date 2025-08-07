@@ -1,6 +1,8 @@
 {
-  "buildCommand": "flutter build web --base-href / --release",
-  "outputDirectory": "build/web",
-  "framework": null,
-  "installCommand": "flutter pub get"
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
 }
