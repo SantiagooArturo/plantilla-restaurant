@@ -1,7 +1,4 @@
 {
-  "outputDirectory": "build/web",
-  "cleanUrls": true,
-  "trailingSlash": false,
   "rewrites": [
     {
       "source": "/(.*)",
