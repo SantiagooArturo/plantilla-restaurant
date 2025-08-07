@@ -1,21 +1,11 @@
 {
-  "github": {
-    "silent": true
-  },
-  "build": {
-    "env": {
-      "FLUTTER_WEB": "true"
-    }
-  },
-  "functions": {
-    "build/web/**": {
-      "memory": 1024
-    }
-  },
+  "buildCommand": "echo 'Using pre-built files'",
+  "outputDirectory": "./build/web",
+  "installCommand": "echo 'No install needed'",
   "rewrites": [
     {
       "source": "/(.*)",
-      "destination": "/build/web/index.html"
+      "destination": "/index.html"
     }
   ]
 }
