@@ -1,0 +1,42 @@
+[
+  {
+    "id": 1,
+    "videoUrl": "https://perlaazulrestaurante.s3.us-east-1.amazonaws.com/2_Videos/1_Piqueos/1_OrgiaMarina.mp4",
+    "title": "Orgia Marina",
+    "description": "Pulpo al olivo, causa de langostinos, chicharron de pescado, ceviche",
+    "price": "90.00",
+    "ingredients": ["Tomato", "Onion", "Garlic", "Chicken"],
+    "spicy": true,
+    "class": "Piqueos"
+  },
+  {
+    "id": 2,
+    "videoUrl": "https://perlaazulrestaurante.s3.us-east-1.amazonaws.com/2_Videos/1_Piqueos/2_TequenosDeQueso.mp4",
+    "title": "Tequeños de Queso",
+    "description": "10 und de masa wantan rellena de queso",
+    "price": "22.00",
+    "ingredients": ["Tomato", "Onion", "Garlic", "Chicken"],
+    "spicy": false,
+    "class": "Piqueos"
+  },
+  {
+    "id": 3,
+    "videoUrl": "https://perlaazulrestaurante.s3.us-east-1.amazonaws.com/2_Videos/1_Piqueos/3_YuquitasCrocantes.mp4",
+    "title": "Yuquitas Crocantes",
+    "description": "12 bastones de yuca crocantes con crema a la huancaina",
+    "price": "20.00",
+    "ingredients": ["Tomato", "Onion", "Garlic", "Chicken"],
+    "spicy": false,
+    "class": "Piqueos"
+  },
+  {
+    "id": 4,
+    "videoUrl": "https://perlaazulrestaurante.s3.us-east-1.amazonaws.com/2_Videos/1_Piqueos/4_PulpoAlOlivo.mp4",
+    "title": "Pulpo Al Olivo",
+    "description": "Láminas de pulpo bañadas en salsa al olivo servido con galletas",
+    "price": "45.00",
+    "ingredients": ["Tomato", "Onion", "Garlic", "Chicken"],
+    "spicy": false,
+    "class": "Piqueos"
+  }
+]

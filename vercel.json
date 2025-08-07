@@ -1,14 +1,11 @@
 {
-  "installCommand": "if [ ! -d \"/opt/flutter\" ]; then git clone https://github.com/flutter/flutter.git -b stable /opt/flutter; fi && export PATH=\"$PATH:/opt/flutter/bin\" && flutter doctor && flutter pub get",
-  "buildCommand": "export PATH=\"$PATH:/opt/flutter/bin\" && flutter build web --release",
   "outputDirectory": "build/web",
-  "routes": [
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "rewrites": [
     {
-      "handle": "filesystem"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 }

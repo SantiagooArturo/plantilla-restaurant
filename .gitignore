@@ -31,7 +31,11 @@ migrate_working_dir/
 .flutter-plugins-dependencies
 .pub-cache/
 .pub/
-/build/
+# /build/
+# Temporarily allowing build/ for Vercel deployment
+build/flutter_assets/
+build/cache.dill.track.dill
+build/c9fdbe631331f581d86cb48ed642391f/
 
 # Symbolication related
 app.*.symbols
