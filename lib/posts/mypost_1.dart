@@ -40,8 +40,24 @@ class _MyPostState extends State<MyPost> with WidgetsBindingObserver {
       widget.videoUrl,
       videoPlayerOptions: VideoPlayerOptions(
         mixWithOthers: true,
+        allowBackgroundPlayback: false,
       ),
+      httpHeaders: {
+        'Cache-Control': 'max-age=86400', // Cache por 24 horas
+      },
     );
+    
+    // Listener para buffering
+    _controller.addListener(() {
+      if (mounted) {
+        final isBuffering = _controller.value.isBuffering;
+        if (isBuffering != _isBuffering) {
+          setState(() {
+            _isBuffering = isBuffering;
+          });
+        }
+      }
+    });
     
     try {
       // Inicializar con volumen 0 para permitir autoplay
@@ -55,10 +71,16 @@ class _MyPostState extends State<MyPost> with WidgetsBindingObserver {
         _isInitialized = true;
       });
       
+      // Solo reproducir si el video está visible
       _controller.play();
       
     } catch (e) {
-      debugPrint("Error al inicializar: $e");
+      debugPrint("Error al inicializar video: $e");
+      if (mounted) {
+        setState(() {
+          _isInitialized = false;
+        });
+      }
     }
   }
 

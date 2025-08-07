@@ -26,7 +26,7 @@ class _SabadosYDomingosPageState extends State<SabadosYDomingosPage> {
   List<dynamic> _videoList = [];
   final Map<int, MyPost> _videoCache = {};
   int _currentIndex = 0;
-  static const int _preloadWindow = 1;
+  static const int _preloadWindow = 0; // Solo precarga el video actual para móviles
   final Set<int> _preloadedIndices = {};
 
   // ===== Métodos del ciclo de vida =====

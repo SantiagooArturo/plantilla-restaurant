@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:perlaazul/posts/mypost_1.dart';
+import 'package:perlaazul/widgets/lazy_video_loader.dart';
 
 /// Página que muestra los piqueos disponibles en el menú
 /// Implementa carga optimizada de videos para mejor rendimiento
@@ -26,7 +27,7 @@ class _PiqueosPageState extends State<PiqueosPage> {
   List<dynamic> _videoList = [];
   final Map<int, MyPost> _videoCache = {};
   int _currentIndex = 0;
-  static const int _preloadWindow = 1;
+  static const int _preloadWindow = 0; // Solo precarga el video actual para móviles
   final Set<int> _preloadedIndices = {};
 
   // ===== Métodos del ciclo de vida =====
@@ -101,13 +102,14 @@ class _PiqueosPageState extends State<PiqueosPage> {
     });
   }
 
-  /// Obtiene o crea un widget de video para un índice específico
+  /// Obtiene un widget de video optimizado para un índice específico
   Widget _getVideoWidget(int index) {
-    if (!_videoCache.containsKey(index)) {
-      _videoCache[index] = MyPost(videoUrl: _videoList[index]['videoUrl']);
-      _preloadedIndices.add(index);
-    }
-    return _videoCache[index]!;
+    return LazyVideoLoader(
+      videoUrl: _videoList[index]['videoUrl'],
+      index: index,
+      currentIndex: _currentIndex,
+      autoPlay: true,
+    );
   }
 
   // ===== Métodos de UI =====
